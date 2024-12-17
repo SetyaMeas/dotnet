@@ -18,6 +18,8 @@ Install-Package Isopoh.Cryptography.Argon2
 
 ---
 
+## Implementation
+
 ```csharp
 using System.Text;
 using System.Security.Cryptography;
