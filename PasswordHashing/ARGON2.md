@@ -1,3 +1,9 @@
+## Getting Start
+
+Argon2 is a hash generator optimized to produce hashes suitable for credential storage, key derivation, or other situations requiring a cryptographically secure password hash. Argon2 was the winner of the 2015 <a target="_blank" href="https://www.password-hashing.net/">Password Hashing Competition.</a>
+
+---
+
 ## Installation
 
 ```
@@ -10,11 +16,18 @@ or
 Install-Package Isopoh.Cryptography.Argon2
 ```
 
-#### Convert Password to byte array
+---
 
 ```csharp
 using System.Text;
+using System.Security.Cryptography;
+using Isopoh.Cryptography.Argon2;
+using Isopoh.Cryptography.SecureArray;
+```
 
+#### Convert Password to byte array
+
+```csharp
 var password = "password1";
 byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 ```
@@ -22,8 +35,6 @@ byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 #### Generate Salt
 
 ```csharp
-using System.Security.Cryptography;
-
 byte[] salt = new byte[16];
 var Rng = RandomNumberGenerator.Create();
 Rng.GetBytes(salt); // fills salt with a strong random sequence
@@ -32,21 +43,19 @@ Rng.GetBytes(salt); // fills salt with a strong random sequence
 #### Create Argon2 Configuration
 
 ```csharp
-using Isopoh.Cryptography.Argon2;
-using Isopoh.Cryptography.SecureArray;
+int Threads = Environment.ProcessorCount; // use full threads
 
 var config = new Argon2Config
 {
     Type = Argon2Type.DataIndependentAddressing,
     Version = Argon2Version.Nineteen,
     TimeCost = 10,
-    MemoryCost = 32768,
+    MemoryCost = 32 * 1024, // 32MB
     Lanes = 5,
-    Threads = Environment.ProcessorCount, // higher than "Lanes" doesn't help (or hurt)
+    Threads = Threads, // higher than "Lanes" doesn't help (or hurt)
     Password = passwordBytes,
     Salt = salt, // >= 8 bytes if not null
-    Secret = secret, // from somewhere
-    AssociatedData = associatedData, // from somewhere
+    Secret = Encoding.UTF8.GetBytes("your secret key"), // from somewhere
     HashLength = 20 // >= 4
 };
 var argon2A = new Argon2(config);
@@ -67,9 +76,28 @@ Console.WriteLine(hashString);
 
 ```csharp
 int Threads = 5;
-if (Argon2.Verify(hashString, passwordBytes, Threads))
+var pwdConfig = new Argon2Config
 {
-    // verified
+    Password = Encoding.UTF8.GetBytes("password"),
+    Threads = Threads,
+    Secret = Encoding.UTF8.GetBytes("your secret key"),
+};
+
+SecureArray<byte>? hash = null;
+bool isHashed = pwdConfig.DecodeString("hashed password", out hash);
+if (isHashed && hash != null)
+{
+    var argon2ToVerify = new Argon2(pwdConfig);
+    using (var hashVerify = argon2ToVerify.Hash())
+    {
+        if (Argon2.FixedTimeEquals(hash, hashVerify))
+        {
+            // verified
+            // do something
+        }
+    }
+
+    hash.Dispose();
 }
 
 ```
@@ -84,4 +112,4 @@ int Threads = Environment.ProcessorCount;
 
 ---
 
-_**See more:**_ <a href="https://www.nuget.org/packages/Isopoh.Cryptography.Argon2" target="_blank">Isopoh.Cryptography.Argon2</a>
+_**See more:**_ <a href="https://www.nuget.org/packages/Isopoh.Cryptography.Argon2" target="_blank">Nutget Package</a> | <a target="_blank" href="https://mheyman.github.io/Isopoh.Cryptography.Argon2/api/Isopoh.Cryptography.Argon2.Argon2Config.html">API Documentation</a>
