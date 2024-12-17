@@ -89,19 +89,23 @@ SecureArray<byte>? hash = null;
 bool isHashed = pwdConfig.DecodeString("hashed password", out hash);
 if (isHashed && hash != null)
 {
-    var argon2ToVerify = new Argon2(pwdConfig);
-    using (var hashVerify = argon2ToVerify.Hash())
+    try
     {
-        if (Argon2.FixedTimeEquals(hash, hashVerify))
+        var argon2ToVerify = new Argon2(pwdConfig);
+        using (var hashVerify = argon2ToVerify.Hash())
         {
-            // verified
-            // do something
+            if (Argon2.FixedTimeEquals(hash, hashVerify))
+            {
+                // verified
+                // do something
+            }
         }
     }
-
-    hash.Dispose();
+    finally
+    {
+        hash.Dispose();
+    }
 }
-
 ```
 
 #### Addition
