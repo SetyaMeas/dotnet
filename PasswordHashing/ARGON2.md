@@ -47,7 +47,7 @@ int Threads = Environment.ProcessorCount; // use full threads
 
 var config = new Argon2Config
 {
-    Type = Argon2Type.DataIndependentAddressing,
+    Type = Argon2Type.HybridAddressing,
     Version = Argon2Version.Nineteen,
     TimeCost = 10,
     MemoryCost = 32 * 1024, // 32MB
